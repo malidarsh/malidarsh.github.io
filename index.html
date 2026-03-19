@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Darshan Mali — Data Scientist</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #050a0e;
+    --surface: #0c1419;
+    --surface2: #111d24;
+    --accent: #00e5ff;
+    --accent2: #7fff6f;
+    --accent3: #ff6b6b;
+    --text: #e8f4f8;
+    --muted: #5a7a89;
+    --border: rgba(0,229,255,0.12);
+    --glow: rgba(0,229,255,0.2);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* CUSTOM CURSOR */
+  .cursor {
+    position: fixed; width: 12px; height: 12px;
+    background: var(--accent); border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, width 0.2s, height 0.2s;
+    mix-blend-mode: screen;
+  }
+  .cursor-ring {
+    position: fixed; width: 36px; height: 36px;
+    border: 1px solid var(--accent); border-radius: 50%;
+    pointer-events: none; z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.25s cubic-bezier(0.25,1,0.5,1), width 0.3s, height 0.3s;
+    opacity: 0.5;
+  }
+
+  /* CANVAS BG */
+  #canvas { position: fixed; inset: 0; z-index: 0; opacity: 0.4; }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1.4rem 5vw;
+    background: rgba(5,10,14,0.7);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem; letter-spacing: 0.1em;
+    color: var(--accent); text-decoration: none;
+  }
+
+  .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+  .nav-links a {
+    font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); text-decoration: none;
+    transition: color 0.25s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+
+  /* SECTIONS */
+  section { position: relative; z-index: 1; }
+
+  /* HERO */
+  #hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 0 8vw;
+    padding-top: 80px;
+  }
+
+  .hero-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 0.8rem;
+  }
+  .hero-tag::before {
+    content: ''; display: block; width: 40px; height: 1px;
+    background: var(--accent);
+  }
+
+  .hero-name {
+    font-size: clamp(3.5rem, 10vw, 8rem);
+    font-weight: 800; line-height: 0.9;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, #fff 0%, var(--accent) 60%, var(--accent2) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-title {
+    margin-top: 1.2rem;
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(0.8rem, 2vw, 1rem);
+    color: var(--muted); letter-spacing: 0.15em;
+  }
+
+  .hero-desc {
+    margin-top: 1.8rem;
+    max-width: 520px;
+    font-size: 1.05rem; line-height: 1.7;
+    color: rgba(232,244,248,0.75);
+    font-weight: 400;
+  }
+
+  .hero-ctas {
+    margin-top: 2.5rem;
+    display: flex; gap: 1rem; flex-wrap: wrap;
+  }
+
+  .btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 0.85rem 2rem; border-radius: 3px;
+    text-decoration: none; cursor: none;
+    transition: all 0.25s;
+  }
+  .btn-primary {
+    background: var(--accent); color: var(--bg);
+    border: 1px solid var(--accent);
+  }
+  .btn-primary:hover { background: transparent; color: var(--accent); }
+  .btn-outline {
+    border: 1px solid var(--border); color: var(--muted);
+    background: transparent;
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+  .hero-stats {
+    margin-top: 4rem;
+    display: flex; gap: 3rem; flex-wrap: wrap;
+  }
+  .stat { border-left: 2px solid var(--accent); padding-left: 1rem; }
+  .stat-num {
+    font-size: 2rem; font-weight: 800;
+    color: var(--accent); line-height: 1;
+  }
+  .stat-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 0.1em;
+    color: var(--muted); margin-top: 0.3rem; text-transform: uppercase;
+  }
+
+  /* SECTION WRAPPER */
+  .section-wrap {
+    padding: 7rem 8vw;
+  }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 0.8rem;
+    display: flex; align-items: center; gap: 0.8rem;
+  }
+  .section-label::before {
+    content: ''; display: block; width: 28px; height: 1px; background: var(--accent);
+  }
+
+  .section-title {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 800; letter-spacing: -0.02em;
+    margin-bottom: 3.5rem;
+  }
+
+  /* EXPERIENCE */
+  #experience { background: var(--surface); }
+
+  .exp-grid { display: flex; flex-direction: column; gap: 0; }
+
+  .exp-item {
+    display: grid; grid-template-columns: 200px 1fr;
+    gap: 0 3rem; padding: 2.5rem 0;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    transition: background 0.3s;
+  }
+  .exp-item:first-child { border-top: 1px solid var(--border); }
+  .exp-item:hover { background: rgba(0,229,255,0.02); }
+
+  .exp-meta { padding-top: 0.2rem; }
+  .exp-period {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 0.08em;
+    color: var(--accent); text-transform: uppercase;
+  }
+  .exp-company {
+    font-size: 0.85rem; color: var(--muted);
+    margin-top: 0.4rem; line-height: 1.4;
+  }
+
+  .exp-role {
+    font-size: 1.25rem; font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  .exp-bullets { list-style: none; display: flex; flex-direction: column; gap: 0.75rem; }
+  .exp-bullets li {
+    font-size: 0.9rem; line-height: 1.65;
+    color: rgba(232,244,248,0.75);
+    padding-left: 1.2rem; position: relative;
+  }
+  .exp-bullets li::before {
+    content: '▸'; position: absolute; left: 0;
+    color: var(--accent2); font-size: 0.7rem; top: 0.15rem;
+  }
+
+  .exp-metric {
+    display: inline-block; margin-top: 0.4rem;
+    background: rgba(127,255,111,0.08);
+    border: 1px solid rgba(127,255,111,0.25);
+    color: var(--accent2);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 0.08em;
+    padding: 0.2rem 0.6rem; border-radius: 2px;
+  }
+
+  .exp-tags {
+    display: flex; flex-wrap: wrap; gap: 0.5rem;
+    margin-top: 1.2rem;
+  }
+  .tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.08em;
+    padding: 0.25rem 0.7rem;
+    border: 1px solid var(--border);
+    color: var(--muted); border-radius: 2px;
+    background: rgba(0,229,255,0.04);
+  }
+
+  /* PROJECTS/HIGHLIGHTS */
+  #projects { background: var(--bg); }
+
+  .projects-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5px; background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .project-card {
+    background: var(--bg); padding: 2.2rem;
+    position: relative; overflow: hidden;
+    transition: background 0.3s;
+  }
+  .project-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .project-card:hover { background: var(--surface2); }
+  .project-card:hover::before { opacity: 1; }
+
+  .project-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem; color: var(--muted);
+    letter-spacing: 0.1em; margin-bottom: 1.2rem;
+  }
+
+  .project-title {
+    font-size: 1.1rem; font-weight: 700;
+    margin-bottom: 0.8rem; line-height: 1.3;
+  }
+
+  .project-desc {
+    font-size: 0.85rem; line-height: 1.65;
+    color: rgba(232,244,248,0.6);
+    margin-bottom: 1.2rem;
+  }
+
+  .project-impact {
+    display: flex; align-items: baseline; gap: 0.5rem;
+    margin-top: auto;
+  }
+  .impact-num {
+    font-size: 1.8rem; font-weight: 800;
+    color: var(--accent); font-family: 'Space Mono', monospace;
+    line-height: 1;
+  }
+  .impact-label {
+    font-size: 0.75rem; color: var(--muted); line-height: 1.3;
+  }
+
+  /* SKILLS */
+  #skills { background: var(--surface); }
+
+  .skills-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .skill-group {
+    border: 1px solid var(--border);
+    padding: 1.8rem; background: var(--bg);
+    transition: border-color 0.3s, transform 0.3s;
+  }
+  .skill-group:hover { border-color: var(--accent); transform: translateY(-3px); }
+
+  .skill-group-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 1.2rem;
+  }
+
+  .skill-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .skill-pill {
+    font-size: 0.82rem; font-weight: 600;
+    padding: 0.4rem 0.9rem;
+    background: rgba(0,229,255,0.06);
+    border: 1px solid rgba(0,229,255,0.15);
+    color: var(--text); border-radius: 2px;
+    transition: all 0.2s;
+  }
+  .skill-pill:hover {
+    background: var(--accent); color: var(--bg);
+    border-color: var(--accent);
+  }
+
+  /* EDUCATION */
+  #education { background: var(--bg); }
+
+  .edu-list { display: flex; flex-direction: column; gap: 1.2rem; }
+
+  .edu-item {
+    display: grid; grid-template-columns: 1fr auto;
+    align-items: start; gap: 1rem;
+    padding: 1.5rem 1.8rem;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    transition: border-color 0.3s;
+  }
+  .edu-item:hover { border-color: rgba(0,229,255,0.35); }
+
+  .edu-degree { font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .edu-uni { font-size: 0.82rem; color: var(--muted); }
+
+  .edu-year {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem; color: var(--accent);
+    letter-spacing: 0.08em; white-space: nowrap;
+    padding-top: 0.2rem;
+  }
+
+  /* CERTIFICATIONS */
+  #certs { background: var(--surface); }
+
+  .certs-list { display: flex; flex-direction: column; gap: 0.8rem; }
+
+  .cert-item {
+    display: flex; align-items: center; gap: 1.2rem;
+    padding: 1.2rem 1.5rem;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    transition: all 0.25s;
+  }
+  .cert-item:hover { border-color: rgba(127,255,111,0.4); }
+  .cert-icon { color: var(--accent2); font-size: 1rem; flex-shrink: 0; }
+  .cert-name { font-size: 0.92rem; font-weight: 600; }
+  .cert-by {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem; color: var(--muted);
+    letter-spacing: 0.1em; margin-top: 0.2rem;
+  }
+
+  /* CONTACT */
+  #contact {
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+  }
+
+  .contact-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 4rem; align-items: center;
+  }
+
+  .contact-text { font-size: 1rem; line-height: 1.75; color: rgba(232,244,248,0.7); }
+
+  .contact-links { display: flex; flex-direction: column; gap: 1rem; }
+  .contact-link {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 1.2rem 1.5rem;
+    border: 1px solid var(--border);
+    color: var(--text); text-decoration: none;
+    font-size: 0.88rem; font-weight: 600;
+    transition: all 0.25s;
+  }
+  .contact-link:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,229,255,0.04);
+  }
+  .contact-link-icon {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem; color: var(--accent);
+    min-width: 20px; text-align: center;
+  }
+
+  /* FOOTER */
+  footer {
+    text-align: center; padding: 2rem;
+    border-top: 1px solid var(--border);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.12em;
+    color: var(--muted); text-transform: uppercase;
+  }
+
+  /* SCROLL REVEAL */
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  /* GLOW BLOB */
+  .glow-blob {
+    position: absolute; border-radius: 50%;
+    filter: blur(80px); opacity: 0.12; pointer-events: none;
+    z-index: 0;
+  }
+
+  @media (max-width: 768px) {
+    .exp-item { grid-template-columns: 1fr; gap: 0.5rem; }
+    .contact-grid { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+    .hero-stats { gap: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<canvas id="canvas"></canvas>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">DM_PORTFOLIO.v1</a>
+  <ul class="nav-links">
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#projects">Impact</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#education">Education</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="glow-blob" style="width:600px;height:600px;background:var(--accent);top:-200px;left:-100px;"></div>
+  <p class="hero-tag reveal">Available for opportunities</p>
+  <h1 class="hero-name reveal">Darshan<br/>Mali</h1>
+  <p class="hero-title reveal">Deputy Manager — Analytics &nbsp;·&nbsp; Data Scientist</p>
+  <p class="hero-desc reveal">
+    2.5+ years building and deploying ML models, predictive analytics, and API-driven solutions for insurance and financial services. Turning raw data into measurable business impact.
+  </p>
+  <div class="hero-ctas reveal">
+    <a href="#contact" class="btn btn-primary">Get in touch</a>
+    <a href="#experience" class="btn btn-outline">View work</a>
+  </div>
+  <div class="hero-stats reveal">
+    <div class="stat">
+      <div class="stat-num">22%</div>
+      <div class="stat-label">Surrender Reduction</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">62%</div>
+      <div class="stat-label">Lead Conversion Top 3 Deciles</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">21%</div>
+      <div class="stat-label">QoQ Loan Disbursement Growth</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">5+</div>
+      <div class="stat-label">Production ML Models</div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPERIENCE -->
+<section id="experience">
+  <div class="section-wrap">
+    <p class="section-label reveal">Career</p>
+    <h2 class="section-title reveal">Experience</h2>
+
+    <div class="exp-grid">
+      <!-- Bajaj -->
+      <div class="exp-item reveal">
+        <div class="exp-meta">
+          <div class="exp-period">Jun 2023 — Present</div>
+          <div class="exp-company">Bajaj Life Insurance Ltd.<br/>Pune, Maharashtra</div>
+        </div>
+        <div class="exp-content">
+          <div class="exp-role">Deputy Manager — Analytics</div>
+          <ul class="exp-bullets">
+            <li>
+              Developed a <strong>Surrender Propensity Model</strong> using XGBoost to predict policy surrender risk, enabling proactive customer retention.
+              <span class="exp-metric">↓ 22% surrender requests vs. control (Q3 FY26)</span>
+            </li>
+            <li>
+              Led a team of 2 to build and deploy a <strong>FastAPI-based TPA allocation system</strong> for term-policy home medicals with geospatial & hotspot analysis. Built PowerBI dashboard for real-time TPA performance tracking.
+              <span class="exp-metric">↑ 17% home medicals · ↑ 0.85% policy issuance (Q2 FY26)</span>
+            </li>
+            <li>
+              Designed and deployed a <strong>Lead Scoring API</strong> using logistic regression + CRIF bureau data to classify leads into High / Medium / Low propensity segments.
+              <span class="exp-metric">4.14% → 7% conversion for top agents · 62% in top 3 deciles (Q4 FY25)</span>
+            </li>
+            <li>
+              Led an <strong>ML-based Underwriter Comment Segmentation</strong> system using Naive Bayes NLP to categorize rejection reasons (medical, financial, occupational) for data-driven underwriting insights.
+            </li>
+            <li>
+              Developed a <strong>loan-against-insurance rule engine</strong> using CRIF bureau data, clustering, and decision trees.
+              <span class="exp-metric">↑ 21% QoQ loan disbursements (~₹90 Cr+ rise, Q3–Q4 FY24)</span>
+            </li>
+          </ul>
+          <div class="exp-tags">
+            <span class="tag">Python</span><span class="tag">R</span>
+            <span class="tag">Oracle SQL</span><span class="tag">FastAPI</span>
+            <span class="tag">XGBoost</span><span class="tag">scikit-learn</span>
+            <span class="tag">Power BI</span><span class="tag">Naive Bayes NLP</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- UTSI -->
+      <div class="exp-item reveal">
+        <div class="exp-meta">
+          <div class="exp-period">Aug 2021 — Mar 2022</div>
+          <div class="exp-company">Universal Technical Systems Inc.<br/>Pune, Maharashtra</div>
+        </div>
+        <div class="exp-content">
+          <div class="exp-role">Application Engineer</div>
+          <ul class="exp-bullets">
+            <li>
+              Developed a specialized <strong>TK Solver Application</strong> for industrial flanges and gaskets, using Monte Carlo simulation to determine required torque for torque wrenches.
+            </li>
+          </ul>
+          <div class="exp-tags">
+            <span class="tag">TK Solver</span><span class="tag">Python</span><span class="tag">Excel</span><span class="tag">Monte Carlo Simulation</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS / IMPACT -->
+<section id="projects">
+  <div class="section-wrap">
+    <p class="section-label reveal">Key Results</p>
+    <h2 class="section-title reveal">Impact by the Numbers</h2>
+
+    <div class="projects-grid">
+      <div class="project-card reveal">
+        <div class="project-num">01 / Retention</div>
+        <div class="project-title">Surrender Propensity Model</div>
+        <div class="project-desc">XGBoost model predicting which policyholders are at risk of surrendering, enabling proactive outreach campaigns at Bajaj Life.</div>
+        <div class="project-impact">
+          <span class="impact-num">22%</span>
+          <span class="impact-label">reduction in surrender requests<br/>vs. control group</span>
+        </div>
+      </div>
+
+      <div class="project-card reveal">
+        <div class="project-num">02 / Operations</div>
+        <div class="project-title">TPA Allocation System</div>
+        <div class="project-desc">FastAPI microservice leveraging geospatial analysis and hotspot modeling to intelligently allocate TPAs for home medical visits.</div>
+        <div class="project-impact">
+          <span class="impact-num">17%</span>
+          <span class="impact-label">improvement in home medicals<br/>+ 0.85% policy issuance uplift</span>
+        </div>
+      </div>
+
+      <div class="project-card reveal">
+        <div class="project-num">03 / Sales</div>
+        <div class="project-title">Lead Scoring API</div>
+        <div class="project-desc">Logistic regression model consuming CRIF bureau data, deployed as a production API to segment insurance leads by conversion propensity.</div>
+        <div class="project-impact">
+          <span class="impact-num">62%</span>
+          <span class="impact-label">conversion rate in top 3 deciles<br/>4.14% → 7% overall</span>
+        </div>
+      </div>
+
+      <div class="project-card reveal">
+        <div class="project-num">04 / Lending</div>
+        <div class="project-title">Loan Rule Engine</div>
+        <div class="project-desc">Hybrid rule engine combining clustering and decision trees on CRIF bureau data to evaluate loan-against-insurance eligibility.</div>
+        <div class="project-impact">
+          <span class="impact-num">₹90Cr+</span>
+          <span class="impact-label">rise in loan disbursements<br/>21% QoQ growth</span>
+        </div>
+      </div>
+
+      <div class="project-card reveal">
+        <div class="project-num">05 / NLP</div>
+        <div class="project-title">Underwriter Comment Segmentation</div>
+        <div class="project-desc">Naive Bayes NLP system that auto-categorizes free-text underwriter comments into standardized rejection reason buckets for analytics.</div>
+        <div class="project-impact">
+          <span class="impact-num">Auto</span>
+          <span class="impact-label">classification of underwriting<br/>medical · financial · occupational</span>
+        </div>
+      </div>
+
+      <div class="project-card reveal">
+        <div class="project-num">06 / Engineering</div>
+        <div class="project-title">Monte Carlo Torque Simulator</div>
+        <div class="project-desc">TK Solver application using Monte Carlo simulation to compute precise torque requirements for industrial flanges and gaskets.</div>
+        <div class="project-impact">
+          <span class="impact-num">MC</span>
+          <span class="impact-label">probabilistic torque modeling<br/>for industrial applications</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="section-wrap">
+    <p class="section-label reveal">Stack</p>
+    <h2 class="section-title reveal">Skills &amp; Tools</h2>
+
+    <div class="skills-grid">
+      <div class="skill-group reveal">
+        <div class="skill-group-title">Languages</div>
+        <div class="skill-pills">
+          <span class="skill-pill">Python</span>
+          <span class="skill-pill">R</span>
+          <span class="skill-pill">SQL</span>
+          <span class="skill-pill">Excel</span>
+        </div>
+      </div>
+
+      <div class="skill-group reveal">
+        <div class="skill-group-title">Frameworks &amp; Libraries</div>
+        <div class="skill-pills">
+          <span class="skill-pill">FastAPI</span>
+          <span class="skill-pill">Scikit-learn</span>
+          <span class="skill-pill">Pandas</span>
+          <span class="skill-pill">NumPy</span>
+          <span class="skill-pill">XGBoost</span>
+        </div>
+      </div>
+
+      <div class="skill-group reveal">
+        <div class="skill-group-title">Visualization &amp; BI</div>
+        <div class="skill-pills">
+          <span class="skill-pill">Microsoft Power BI</span>
+          <span class="skill-pill">Oracle SQL</span>
+        </div>
+      </div>
+
+      <div class="skill-group reveal">
+        <div class="skill-group-title">ML &amp; Analytics</div>
+        <div class="skill-pills">
+          <span class="skill-pill">Machine Learning</span>
+          <span class="skill-pill">Statistical Modeling</span>
+          <span class="skill-pill">Predictive Modeling</span>
+          <span class="skill-pill">Hypothesis Testing</span>
+          <span class="skill-pill">Scorecard Modeling</span>
+          <span class="skill-pill">NLP</span>
+          <span class="skill-pill">Geospatial Analysis</span>
+          <span class="skill-pill">Key Driver Analysis</span>
+        </div>
+      </div>
+
+      <div class="skill-group reveal">
+        <div class="skill-group-title">Deployment</div>
+        <div class="skill-pills">
+          <span class="skill-pill">REST APIs</span>
+          <span class="skill-pill">FastAPI</span>
+          <span class="skill-pill">Production ML</span>
+        </div>
+      </div>
+
+      <div class="skill-group reveal">
+        <div class="skill-group-title">AI &amp; GenAI</div>
+        <div class="skill-pills">
+          <span class="skill-pill">AI Agents</span>
+          <span class="skill-pill">LLMs</span>
+          <span class="skill-pill">Agentic AI</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EDUCATION -->
+<section id="education">
+  <div class="section-wrap">
+    <p class="section-label reveal">Academic</p>
+    <h2 class="section-title reveal">Education</h2>
+
+    <div class="edu-list">
+      <div class="edu-item reveal">
+        <div>
+          <div class="edu-degree">Master of Science — Statistics</div>
+          <div class="edu-uni">Dept. of Statistics, Savitribai Phule Pune University</div>
+        </div>
+        <div class="edu-year">Jun 2021 — Jun 2023</div>
+      </div>
+      <div class="edu-item reveal">
+        <div>
+          <div class="edu-degree">Master of Science — Mathematics</div>
+          <div class="edu-uni">Dept. of Mathematics, Savitribai Phule Pune University</div>
+        </div>
+        <div class="edu-year">Jun 2019 — Jun 2021</div>
+      </div>
+      <div class="edu-item reveal">
+        <div>
+          <div class="edu-degree">Bachelor of Science — Mathematics</div>
+          <div class="edu-uni">Fergusson College, Pune</div>
+        </div>
+        <div class="edu-year">Jun 2016 — Jun 2019</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CERTIFICATIONS -->
+<section id="certs">
+  <div class="section-wrap">
+    <p class="section-label reveal">Learning</p>
+    <h2 class="section-title reveal">Certifications</h2>
+
+    <div class="certs-list">
+      <div class="cert-item reveal">
+        <div class="cert-icon">◆</div>
+        <div>
+          <div class="cert-name">Machine Learning (ML)</div>
+          <div class="cert-by">Tutedude</div>
+        </div>
+      </div>
+      <div class="cert-item reveal">
+        <div class="cert-icon">◆</div>
+        <div>
+          <div class="cert-name">AI Agents and Agentic AI with Python &amp; Generative AI</div>
+          <div class="cert-by">Coursera</div>
+        </div>
+      </div>
+      <div class="cert-item reveal">
+        <div class="cert-icon">◆</div>
+        <div>
+          <div class="cert-name">Generative AI with Large Language Models</div>
+          <div class="cert-by">Coursera</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="section-wrap">
+    <p class="section-label reveal">Let's connect</p>
+    <h2 class="section-title reveal">Contact</h2>
+
+    <div class="contact-grid">
+      <div class="reveal">
+        <p class="contact-text">
+          I'm always open to discussing data science projects, collaboration opportunities, or new roles. Feel free to reach out through any of the channels below.
+        </p>
+        <br />
+        <p class="contact-text" style="font-size:0.85rem;color:var(--muted);">
+          📍 Pune, Maharashtra, India
+        </p>
+      </div>
+      <div class="contact-links reveal">
+        <a href="mailto:malidarshan3@gmail.com" class="contact-link">
+          <span class="contact-link-icon">@</span>
+          malidarshan3@gmail.com
+        </a>
+        <a href="https://github.com/malidarsh" target="_blank" class="contact-link">
+          <span class="contact-link-icon">GH</span>
+          github.com/malidarsh
+        </a>
+        <a href="https://linkedin.com/in/malidarsh" target="_blank" class="contact-link">
+          <span class="contact-link-icon">in</span>
+          linkedin.com/in/malidarsh
+        </a>
+        <a href="tel:+919763716403" class="contact-link">
+          <span class="contact-link-icon">☎</span>
+          +91 97637 16403
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  &copy; 2026 Darshan Mali &nbsp;·&nbsp; Built with purpose &nbsp;·&nbsp; Data-driven by nature
+</footer>
+
+<script>
+// Cursor
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+function animCursor() {
+  cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+  rx += (mx - rx) * 0.14; ry += (my - ry) * 0.14;
+  ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+  requestAnimationFrame(animCursor);
+}
+animCursor();
+
+// Canvas particle network
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [];
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+resize(); window.addEventListener('resize', resize);
+
+const N = 80;
+for (let i = 0; i < N; i++) {
+  particles.push({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    vx: (Math.random() - 0.5) * 0.4,
+    vy: (Math.random() - 0.5) * 0.4,
+    r: Math.random() * 1.5 + 0.5
+  });
+}
+
+function drawParticles() {
+  ctx.clearRect(0, 0, W, H);
+  for (let p of particles) {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,229,255,0.7)'; ctx.fill();
+  }
+  for (let i = 0; i < N; i++) {
+    for (let j = i + 1; j < N; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 130) {
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.strokeStyle = `rgba(0,229,255,${0.15 * (1 - dist/130)})`;
+        ctx.lineWidth = 0.5; ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+// Scroll reveal
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), 80);
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+reveals.forEach(el => observer.observe(el));
+
+// Stagger reveals in hero
+document.querySelectorAll('#hero .reveal').forEach((el, i) => {
+  el.style.transitionDelay = (i * 0.1) + 's';
+});
+</script>
+</body>
+</html>
